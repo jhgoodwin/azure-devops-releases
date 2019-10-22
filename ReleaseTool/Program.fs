@@ -11,9 +11,9 @@ type ProjectResponse = JsonProvider<"""{
   "count": 16,
   "value": [
     {
-      "id": "8ae3633b-b2c0-44a8-8457-fca4cfc7a43e",
-      "name": "Infrastructure",
-      "url": "https://dev.azure.com/metabolondev/_apis/projects/8ae3633b-b2c0-44a8-8457-fca4cfc7a43e",
+      "id": "2703b5c1-80fe-49dc-a657-25c3f50d5cc8",
+      "name": "MyProject",
+      "url": "https://dev.azure.com/myaccount/_apis/projects/2703b5c1-80fe-49dc-a657-25c3f50d5cc8",
       "state": "wellFormed",
       "revision": 495,
       "visibility": "private",
