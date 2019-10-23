@@ -23,18 +23,28 @@ type ProjectResponse = JsonProvider<"""{
 }""">
 
 let envOrNone key =
-  match Environment.GetEnvironmentVariables().Contains(key) with
-  | true -> Some (Environment.GetEnvironmentVariable(key))
-  | false -> None
+    match Environment.GetEnvironmentVariables().Contains(key) with
+    | true -> Some (Environment.GetEnvironmentVariable(key))
+    | false -> None
 
-let getBaseDevOpsUrl project =
-  sprintf "https://dev.azure.com/%s" project
+let getBaseDevOpsUri project =
+    let builder = UriBuilder("https://dev.azure.com/")
+    builder.Path <- project
+    builder.Uri
 
-let getProjects baseUrl token =
-    let url = sprintf "%s/_apis/projects" baseUrl
-    let requests =
-      Request.createUrl Get url
+let getApiUri (baseUri: Uri) pathFragment =
+    let builder = UriBuilder(baseUri)
+    builder.Path <- builder.Path + pathFragment
+    builder.Uri
+
+let templateRequest (token: string) (makeUri: string -> Uri) pathFragment method : Request =
+    let uri = makeUri pathFragment
+    Request.createUrl method uri.AbsoluteUri
       |> Request.basicAuthentication String.Empty token
+
+let getProjects (request: string -> HttpMethod -> Request) =
+    let requests =
+      request "/_apis/projects" Get
       |> Request.responseAsString
       |> run
       |> ProjectResponse.Parse
@@ -44,13 +54,13 @@ let getProjects baseUrl token =
 [<EntryPoint>]
 let main argv =
     DotEnv.Config()
-    let devopsAccount = envOrNone "VSTS_ACCOUNT"
-    let token = envOrNone "VSTS_TOKEN"
-    match (devopsAccount, token) with
+    match (envOrNone "VSTS_ACCOUNT", envOrNone "VSTS_TOKEN") with
     | (None, None) -> printfn "Please provide env vars for VSTS_ACCOUNT, VSTS_TOKEN"
     | (None, _) -> printfn "Please provide env vars for VSTS_ACCOUNT"
     | (_, None) -> printfn "Please provide env vars for VSTS_TOKEN"
-    | (d, t) ->
-      let baseUrl = getBaseDevOpsUrl d.Value
-      getProjects baseUrl t.Value
+    | (account, token) ->
+      let baseUri = getBaseDevOpsUri account.Value
+      let makeUri = getApiUri baseUri
+      let request = templateRequest token.Value makeUri
+      getProjects request
     0 // return an integer exit code
