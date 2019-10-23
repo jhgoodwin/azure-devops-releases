@@ -49,7 +49,7 @@ let getProjects (request: string -> HttpMethod -> Request) =
       |> run
       |> ProjectResponse.Parse
     let projects = requests.Value
-    projects |> Array.iter (printfn "%O")
+    projects
 
 [<EntryPoint>]
 let main argv =
@@ -63,4 +63,5 @@ let main argv =
       let makeUri = getApiUri baseUri
       let request = templateRequest token.Value makeUri
       getProjects request
+      |> Array.iter (printfn "%O")
     0 // return an integer exit code
